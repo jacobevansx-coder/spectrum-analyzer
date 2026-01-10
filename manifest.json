@@ -1,0 +1,25 @@
+{
+  "name": "Spectrum Analyzer",
+  "short_name": "Spectrum",
+  "description": "Real-time audio spectrum analyzer",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "portrait",
+  "categories": ["music", "utilities"],
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192'%3E%3Crect width='192' height='192' fill='%230f172a'/%3E%3Cpath d='M96 160 L96 64 M72 160 L72 80 M48 160 L48 96 M120 160 L120 48 M144 160 L144 112' stroke='%2306b6d4' stroke-width='16' stroke-linecap='round'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='512'%3E%3Crect width='512' height='512' fill='%230f172a'/%3E%3Cpath d='M256 426 L256 170 M192 426 L192 213 M128 426 L128 256 M320 426 L320 128 M384 426 L384 298' stroke='%2306b6d4' stroke-width='48' stroke-linecap='round'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
