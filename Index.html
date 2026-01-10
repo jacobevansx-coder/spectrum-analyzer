@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="Real-time audio spectrum analyzer for Android">
+    <title>Spectrum Analyzer</title>
+    
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192'%3E%3Crect width='192' height='192' fill='%230f172a'/%3E%3Cpath d='M96 160 L96 64 M72 160 L72 80 M48 160 L48 96 M120 160 L120 48 M144 160 L144 112' stroke='%2306b6d4' stroke-width='16' stroke-linecap='round'/%3E%3C/svg%3E">
+    
+    <link rel="manifest" href="manifest.json">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f172a;
+            color: white;
+            overflow: hidden;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+        }
+
+        .header {
+            padding: 16px;
+            background: #1e293b;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(to right, #06b6d4, #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .canvas-container {
+            flex: 1;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        canvas {
+            width: 100%;
+            max-width: 800px;
+            height: 60vh;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+            background: #0f172a;
+        }
+
+        .controls {
+            padding: 24px;
+            background: #1e293b;
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+            color: #fecaca;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .sensitivity-control {
+            margin-bottom: 16px;
+        }
+
+        .sensitivity-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #cbd5e1;
+            margin-bottom: 8px;
+        }
+
+        .sensitivity-value {
+            color: #06b6d4;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            background: #334155;
+            border-radius: 8px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #06b6d4;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: #06b6d4;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: transform 0.2s;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-start {
+            background: linear-gradient(to right, #06b6d4, #3b82f6);
+            box-shadow: 0 10px 15px -3px rgba(6, 182, 212, 0.5);
+        }
+
+        .btn-stop {
+            background: linear-gradient(to right, #ef4444, #ec4899);
+            box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.5);
+        }
+
+        .info {
+            margin-top: 16px;
+            font-size: 12px;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        .info p {
+            margin-bottom: 4px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">Spectrum Analyzer</div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="canvas"></canvas>
+        </div>
+
+        <div class="controls">
+            <div id="error" class="error hidden"></div>
+
+            <div class="sensitivity-control">
+                <div class="sensitivity-label">
+                    <span>Sensitivity</span>
+                    <span class="sensitivity-value" id="sensitivityValue">1.5x</span>
+                </div>
+                <input type="range" id="sensitivity" min="0.5" max="3" step="0.1" value="1.5">
+            </div>
+
+            <button id="toggleBtn" class="btn btn-start">
+                <svg id="playIcon" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+                <svg id="pauseIcon" class="hidden" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+                </svg>
+                <span id="btnText">Start Analyzer</span>
+            </button>
+
+            <div class="info">
+                <p>Tap the button and allow microphone access to start</p>
+                <p>Make some noise and watch the frequencies dance!</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const toggleBtn = document.getElementById('toggleBtn');
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        const btnText = document.getElementById('btnText');
+        const errorDiv = document.getElementById('error');
+        const sensitivityInput = document.getElementById('sensitivity');
+        const sensitivityValue = document.getElementById('sensitivityValue');
+
+        let isActive = false;
+        let animationId = null;
+        let audioContext = null;
+        let analyser = null;
+        let dataArray = null;
+        let source = null;
+        let stream = null;
+        let sensitivity = 1.5;
+
+        // Canvas setup
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+        }
+
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Sensitivity control
+        sensitivityInput.addEventListener('input', (e) => {
+            sensitivity = parseFloat(e.target.value);
+            sensitivityValue.textContent = sensitivity.toFixed(1) + 'x';
+        });
+
+        // Start analyzer
+        async function startAnalyzer() {
+            try {
+                errorDiv.classList.add('hidden');
+
+                stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: false,
+                        noiseSuppression: false,
+                        autoGainControl: false
+                    }
+                });
+
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 2048;
+                analyser.smoothingTimeConstant = 0.7;
+
+                source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyser);
+
+                const bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+
+                isActive = true;
+                updateUI();
+                draw();
+
+            } catch (err) {
+                errorDiv.textContent = 'Microphone access denied. Please enable microphone permissions.';
+                errorDiv.classList.remove('hidden');
+                console.error('Error:', err);
+            }
+        }
+
+        // Stop analyzer
+        function stopAnalyzer() {
+            isActive = false;
+
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+
+            if (source) {
+                source.disconnect();
+            }
+
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+
+            if (audioContext) {
+                audioContext.close();
+            }
+
+            updateUI();
+        }
+
+        // Update UI
+        function updateUI() {
+            if (isActive) {
+                toggleBtn.classList.remove('btn-start');
+                toggleBtn.classList.add('btn-stop');
+                playIcon.classList.add('hidden');
+                pauseIcon.classList.remove('hidden');
+                btnText.textContent = 'Stop Analyzer';
+            } else {
+                toggleBtn.classList.remove('btn-stop');
+                toggleBtn.classList.add('btn-start');
+                playIcon.classList.remove('hidden');
+                pauseIcon.classList.add('hidden');
+                btnText.textContent = 'Start Analyzer';
+            }
+        }
+
+        // Draw spectrum
+        function draw() {
+            if (!isActive) return;
+
+            animationId = requestAnimationFrame(draw);
+
+            analyser.getByteFrequencyData(dataArray);
+
+            const WIDTH = canvas.width / window.devicePixelRatio;
+            const HEIGHT = canvas.height / window.devicePixelRatio;
+
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.3)';
+            ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+            const barCount = 64;
+            const barWidth = WIDTH / barCount;
+            const step = Math.floor(dataArray.length / barCount);
+
+            for (let i = 0; i < barCount; i++) {
+                const barHeight = (dataArray[i * step] / 255) * HEIGHT * sensitivity;
+
+                const gradient = ctx.createLinearGradient(0, HEIGHT - barHeight, 0, HEIGHT);
+                gradient.addColorStop(0, '#06b6d4');
+                gradient.addColorStop(0.5, '#3b82f6');
+                gradient.addColorStop(1, '#8b5cf6');
+
+                ctx.fillStyle = gradient;
+
+                const x = i * barWidth;
+                const y = HEIGHT - barHeight;
+
+                ctx.beginPath();
+                ctx.roundRect(x + 1, y, barWidth - 2, barHeight, [4, 4, 0, 0]);
+                ctx.fill();
+
+                if (barHeight > HEIGHT * 0.5) {
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#06b6d4';
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            }
+        }
+
+        // Toggle button
+        toggleBtn.addEventListener('click', () => {
+            if (isActive) {
+                stopAnalyzer();
+            } else {
+                startAnalyzer();
+            }
+        });
+
+        // Service Worker registration for PWA
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                self.addEventListener('install', (e) => {
+                    self.skipWaiting();
+                });
+                
+                self.addEventListener('activate', (e) => {
+                    e.waitUntil(clients.claim());
+                });
+                
+                self.addEventListener('fetch', (e) => {
+                    e.respondWith(fetch(e.request));
+                });
+            `;
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            const swURL = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swURL);
+        }
+    </script>
+</body>
+</html>
