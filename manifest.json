@@ -10,15 +10,15 @@
   "categories": ["music", "utilities"],
   "icons": [
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='192' height='192'%3E%3Crect width='192' height='192' fill='%230f172a'/%3E%3Cpath d='M96 160 L96 64 M72 160 L72 80 M48 160 L48 96 M120 160 L120 48 M144 160 L144 112' stroke='%2306b6d4' stroke-width='16' stroke-linecap='round'/%3E%3C/svg%3E",
+      "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='512' height='512'%3E%3Crect width='512' height='512' fill='%230f172a'/%3E%3Cpath d='M256 426 L256 170 M192 426 L192 213 M128 426 L128 256 M320 426 L320 128 M384 426 L384 298' stroke='%2306b6d4' stroke-width='48' stroke-linecap='round'/%3E%3C/svg%3E",
+      "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
@@ -27,14 +27,7 @@
       "name": "Start Analyzer",
       "short_name": "Start",
       "description": "Launch spectrum analyzer",
-      "url": "./",
-      "icons": [
-        {
-          "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96'%3E%3Cpath d='M30 24 L30 72 L72 48 Z' fill='%2306b6d4'/%3E%3C/svg%3E",
-          "sizes": "96x96",
-          "type": "image/svg+xml"
-        }
-      ]
+      "url": "./"
     }
   ]
 }
